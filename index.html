@@ -15,6 +15,7 @@
   --surface: #ffffff;
   --surface-soft: #f8ece9;
   --ink: #2d2426;
+  --heading: #6f3b31;
   --muted: #7d696c;
   --accent: #b86f79;
   --accent-2: #d7a77f;
@@ -451,7 +452,8 @@ img {
     linear-gradient(135deg, var(--surface), var(--surface-soft));
   color: var(--accent);
   font-family: var(--script-font);
-  font-size: 3rem;
+  font-size: clamp(4.8rem, 12vw, 7.2rem);
+  line-height: 0.82;
 }
 
 .portrait-deco {
@@ -610,7 +612,7 @@ h2 {
   font-family: var(--title-font);
   font-size: clamp(2.45rem, 7vw, var(--title-size));
   line-height: 0.98;
-  color: var(--ink);
+  color: var(--heading);
   font-weight: 600;
 }
 
@@ -709,7 +711,7 @@ h2 {
   margin: 0 0 18px;
   font-family: var(--title-font);
   font-size: clamp(2rem, 6vw, 3.1rem);
-  color: var(--accent);
+  color: var(--heading);
   line-height: 1;
 }
 
@@ -756,7 +758,7 @@ h2 {
   font-family: var(--title-font);
   font-size: 2rem;
   line-height: 1;
-  color: var(--ink);
+  color: var(--heading);
 }
 
 .detail-item p {
@@ -898,7 +900,7 @@ h2 {
 .closing h2 {
   font-family: var(--script-font);
   font-weight: 400;
-  color: var(--accent);
+  color: var(--heading);
   font-size: clamp(3.6rem, 13vw, 7.4rem);
 }
 
@@ -973,6 +975,87 @@ h2 {
   color: #fff;
   background: rgba(255,255,255,0.08);
   cursor: pointer;
+}
+
+.gift-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 7200;
+  display: none;
+  place-items: center;
+  padding: 18px;
+  background: rgba(20, 16, 18, 0.74);
+  backdrop-filter: blur(14px);
+}
+
+.gift-modal.visible {
+  display: grid;
+}
+
+.gift-panel {
+  width: min(92vw, 520px);
+  max-height: 86vh;
+  overflow: auto;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255,255,255,0.54);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255,255,255,0.78), transparent 34%),
+    var(--surface);
+  color: var(--ink);
+  box-shadow: 0 28px 80px rgba(0,0,0,0.34);
+  padding: clamp(24px, 5vw, 36px);
+  position: relative;
+}
+
+.gift-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.gift-panel h2 {
+  padding-right: 42px;
+  font-size: clamp(2.2rem, 8vw, 3.4rem);
+}
+
+.gift-panel .lead {
+  margin-bottom: 22px;
+}
+
+.gift-data {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.gift-row {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface-soft) 42%, var(--surface));
+}
+
+.gift-label {
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.gift-value {
+  color: var(--ink);
+  font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .toast {
@@ -1261,9 +1344,6 @@ h2 {
       <p class="section-kicker" id="closingKicker"></p>
       <h2 id="closingTitle"></h2>
       <p class="lead" id="closingText"></p>
-      <div class="button-row">
-        <a class="btn" id="closingWhatsapp" target="_blank" rel="noopener"></a>
-      </div>
     </div>
   </section>
 </main>
@@ -1271,6 +1351,16 @@ h2 {
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Foto ampliada">
   <button type="button" id="closeLightbox" aria-label="Cerrar">x</button>
   <img id="lightboxImage" alt="Foto ampliada" />
+</div>
+
+<div class="gift-modal" id="giftModal" role="dialog" aria-modal="true" aria-label="Datos de regalo">
+  <div class="gift-panel">
+    <button class="gift-close" type="button" id="closeGift" aria-label="Cerrar">x</button>
+    <p class="section-kicker" id="giftKicker"></p>
+    <h2 id="giftTitle"></h2>
+    <p class="lead" id="giftIntro"></p>
+    <div class="gift-data" id="giftData"></div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1294,9 +1384,9 @@ const CONFIG = {
     textoCierre: "Gracias por acompañarme en este momento tan especial. Tu presencia hará que la noche sea todavía más inolvidable."
   },
 
-  lugares: [
-    {
-      mostrar: true,
+  eventos: {
+    ceremonia: {
+      mostrar: false,
       titulo: "Ceremonia",
       fecha: "14 de diciembre",
       hora: "20:00 hs",
@@ -1304,7 +1394,7 @@ const CONFIG = {
       direccion: "Av. Principal 1234, Montevideo",
       mapa: "https://maps.google.com/"
     },
-    {
+    fiesta: {
       mostrar: true,
       titulo: "Fiesta",
       fecha: "14 de diciembre",
@@ -1313,16 +1403,27 @@ const CONFIG = {
       direccion: "Camino de los Aromos 5678, Montevideo",
       mapa: "https://maps.google.com/"
     }
-  ],
+  },
 
   enlaces: {
     whatsappNumero: "59899000000",
     whatsappMensaje: "Hola, confirmo mi asistencia a la fiesta de Valentina.",
     playlistGoogleForm: "https://docs.google.com/forms/",
-    playlistTexto: "Sugerí esa canción que sí o sí tiene que sonar en la pista.",
-    regaloMostrar: true,
-    regaloTexto: "El mejor regalo es que vengas. Si querés tener un detalle, podés consultar los datos por WhatsApp.",
-    regaloWhatsappMensaje: "Hola, quisiera consultar los datos para regalo."
+    playlistTexto: "Sugerí esa canción que sí o sí tiene que sonar en la pista."
+  },
+
+  regalo: {
+    mostrar: true,
+    titulo: "Datos para regalo",
+    textoSeccion: "El mejor regalo es que vengas. Si querés tener un detalle, podés consultar los datos acá.",
+    textoModal: "Podés usar estos datos si querés hacer un obsequio.",
+    cuentaBancaria: "BROU Caja de Ahorro 0000000000",
+    titular: "Valentina Pérez",
+    ci: "1.234.567-8",
+    datosExtra: [
+      { mostrar: true, etiqueta: "Alias", valor: "VALENTINA15" },
+      { mostrar: false, etiqueta: "Otro dato", valor: "" }
+    ]
   },
 
   dressCode: {
@@ -1353,8 +1454,8 @@ const CONFIG = {
   },
 
   portada: {
-    usarFoto: true,
-    foto: "cover.jpg",
+    modoCirculo: "foto", // "foto" usa una imagen. "inicial" muestra la letra grande.
+    fotoCirculo: "cover.jpg",
     posicionFoto: "center center",
     textoBotonPrincipal: "Ver detalles",
     textoBotonSecundario: "Ver fotos"
@@ -1364,6 +1465,7 @@ const CONFIG = {
     paleta: "rosa_perla",
     fuentes: "editorial",
     tema: "floral",
+    colorTitulos: "#6f3b31",
     tamañoTitulo: "3.7rem",
     tamañoTexto: "1rem",
     tamañoBoton: "0.78rem",
@@ -1406,37 +1508,37 @@ const CONFIG = {
 const PALETAS = {
   rosa_perla: {
     bg: "#fff8f4", surface: "#ffffff", surfaceSoft: "#f8ece9", ink: "#2d2426", muted: "#7d696c",
-    accent: "#b86f79", accent2: "#d7a77f", accent3: "#738c74", buttonBg: "#2d2426", buttonText: "#ffffff",
+    heading: "#6f3b31", accent: "#b86f79", accent2: "#d7a77f", accent3: "#738c74", buttonBg: "#2d2426", buttonText: "#ffffff",
     line: "rgba(45,36,38,0.16)", shadow: "rgba(45,36,38,0.16)", glow: "rgba(184,111,121,0.22)"
   },
   noche_dorada: {
     bg: "#111014", surface: "#1a171d", surfaceSoft: "#231f27", ink: "#fff8ed", muted: "#d4c3b1",
-    accent: "#d6a85f", accent2: "#a77aaf", accent3: "#6e9175", buttonBg: "#d6a85f", buttonText: "#181012",
+    heading: "#d6a85f", accent: "#d6a85f", accent2: "#a77aaf", accent3: "#6e9175", buttonBg: "#d6a85f", buttonText: "#181012",
     line: "rgba(255,248,237,0.17)", shadow: "rgba(0,0,0,0.34)", glow: "rgba(214,168,95,0.24)"
   },
   jardin_salvia: {
     bg: "#f5f6ee", surface: "#ffffff", surfaceSoft: "#e8eddf", ink: "#25302a", muted: "#687267",
-    accent: "#6e9175", accent2: "#c49a6c", accent3: "#b36d7d", buttonBg: "#25302a", buttonText: "#ffffff",
+    heading: "#704233", accent: "#6e9175", accent2: "#c49a6c", accent3: "#b36d7d", buttonBg: "#25302a", buttonText: "#ffffff",
     line: "rgba(37,48,42,0.16)", shadow: "rgba(37,48,42,0.14)", glow: "rgba(110,145,117,0.22)"
   },
   lavanda_luna: {
     bg: "#f8f4ff", surface: "#ffffff", surfaceSoft: "#eee8f7", ink: "#292331", muted: "#72677f",
-    accent: "#8a6fb0", accent2: "#cf9aa7", accent3: "#6e8c8b", buttonBg: "#292331", buttonText: "#ffffff",
+    heading: "#6f4657", accent: "#8a6fb0", accent2: "#cf9aa7", accent3: "#6e8c8b", buttonBg: "#292331", buttonText: "#ffffff",
     line: "rgba(41,35,49,0.15)", shadow: "rgba(41,35,49,0.14)", glow: "rgba(138,111,176,0.24)"
   },
   princesa_celeste: {
     bg: "#f4fbff", surface: "#ffffff", surfaceSoft: "#e5f2f7", ink: "#1f2c36", muted: "#657783",
-    accent: "#6aa7c8", accent2: "#d5b46a", accent3: "#c68ea2", buttonBg: "#1f2c36", buttonText: "#ffffff",
+    heading: "#71513a", accent: "#6aa7c8", accent2: "#d5b46a", accent3: "#c68ea2", buttonBg: "#1f2c36", buttonText: "#ffffff",
     line: "rgba(31,44,54,0.16)", shadow: "rgba(31,44,54,0.15)", glow: "rgba(106,167,200,0.24)"
   },
   mariposa_ambar: {
     bg: "#fff7eb", surface: "#ffffff", surfaceSoft: "#f4e3ca", ink: "#31251b", muted: "#816d5b",
-    accent: "#c17a38", accent2: "#9c6db4", accent3: "#6e8d72", buttonBg: "#31251b", buttonText: "#ffffff",
+    heading: "#7a3f28", accent: "#c17a38", accent2: "#9c6db4", accent3: "#6e8d72", buttonBg: "#31251b", buttonText: "#ffffff",
     line: "rgba(49,37,27,0.15)", shadow: "rgba(49,37,27,0.15)", glow: "rgba(193,122,56,0.24)"
   },
   champagne_minimal: {
     bg: "#fbfaf7", surface: "#ffffff", surfaceSoft: "#efebe3", ink: "#242321", muted: "#716c64",
-    accent: "#a68b5d", accent2: "#7c8d86", accent3: "#b47878", buttonBg: "#242321", buttonText: "#ffffff",
+    heading: "#71533d", accent: "#a68b5d", accent2: "#7c8d86", accent3: "#b47878", buttonBg: "#242321", buttonText: "#ffffff",
     line: "rgba(36,35,33,0.14)", shadow: "rgba(36,35,33,0.13)", glow: "rgba(166,139,93,0.22)"
   }
 };
@@ -1501,6 +1603,7 @@ function aplicarDiseno() {
   cssVar("--surface", paleta.surface);
   cssVar("--surface-soft", paleta.surfaceSoft);
   cssVar("--ink", paleta.ink);
+  cssVar("--heading", CONFIG.diseno.colorTitulos || paleta.heading);
   cssVar("--muted", paleta.muted);
   cssVar("--accent", paleta.accent);
   cssVar("--accent-2", paleta.accent2);
@@ -1570,21 +1673,21 @@ function aplicarTextos() {
   setText("closingKicker", CONFIG.secciones.cierreKicker);
   setText("closingTitle", CONFIG.secciones.cierreTitulo);
   setText("closingText", CONFIG.evento.textoCierre);
-  $("closingWhatsapp").href = whatsappLink(CONFIG.enlaces.whatsappMensaje);
-  $("closingWhatsapp").innerHTML = `${ICONOS.whatsapp}<span>Confirmar asistencia</span>`;
 }
 
 function aplicarPortada() {
   const img = $("coverImage");
   const fallback = $("coverFallback");
   fallback.textContent = CONFIG.evento.iniciales || CONFIG.evento.nombre.charAt(0);
-  if (!CONFIG.portada.usarFoto || !CONFIG.portada.foto) {
+  const modo = CONFIG.portada.modoCirculo || (CONFIG.portada.usarFoto ? "foto" : "inicial");
+  const foto = CONFIG.portada.fotoCirculo || CONFIG.portada.foto;
+  if (modo !== "foto" || !foto) {
     img.removeAttribute("src");
     img.style.display = "none";
     fallback.hidden = false;
     return;
   }
-  img.src = CONFIG.portada.foto;
+  img.src = foto;
   img.style.objectPosition = CONFIG.portada.posicionFoto || "center center";
   img.onload = () => { img.style.display = "block"; fallback.hidden = true; };
   img.onerror = () => { img.style.display = "none"; fallback.hidden = false; };
@@ -1592,8 +1695,9 @@ function aplicarPortada() {
 
 function crearEventos() {
   const grid = $("eventGrid");
+  const eventos = CONFIG.eventos ? Object.values(CONFIG.eventos) : (CONFIG.lugares || []);
   grid.innerHTML = "";
-  CONFIG.lugares.filter((lugar) => lugar.mostrar).forEach((lugar) => {
+  eventos.filter((lugar) => lugar.mostrar).forEach((lugar) => {
     const item = document.createElement("article");
     item.className = "event-item";
     item.innerHTML = `
@@ -1631,12 +1735,12 @@ function crearDetalles() {
     }
   ];
 
-  if (CONFIG.enlaces.regaloMostrar) {
+  if (CONFIG.regalo && CONFIG.regalo.mostrar) {
     detalles.push({
       titulo: "Regalo",
-      texto: CONFIG.enlaces.regaloTexto,
+      texto: CONFIG.regalo.textoSeccion,
       icono: ICONOS.regalo,
-      boton: `<a class="btn secundario" href="${whatsappLink(CONFIG.enlaces.regaloWhatsappMensaje)}" target="_blank" rel="noopener">Consultar datos</a>`
+      boton: `<button class="btn secundario" type="button" onclick="abrirRegalo()">Consultar datos</button>`
     });
   }
 
@@ -1726,6 +1830,35 @@ function cerrarLightbox() {
   $("lightboxImage").removeAttribute("src");
 }
 
+function configurarRegalo() {
+  if (!CONFIG.regalo) return;
+  setText("giftKicker", "Regalo");
+  setText("giftTitle", CONFIG.regalo.titulo);
+  setText("giftIntro", CONFIG.regalo.textoModal);
+  const filas = [
+    { etiqueta: "Cuenta bancaria", valor: CONFIG.regalo.cuentaBancaria },
+    { etiqueta: "Nombre del titular", valor: CONFIG.regalo.titular },
+    { etiqueta: "CI", valor: CONFIG.regalo.ci },
+    ...(CONFIG.regalo.datosExtra || [])
+  ].filter((dato) => dato && dato.mostrar !== false && dato.valor);
+
+  $("giftData").innerHTML = filas.map((dato) => `
+    <div class="gift-row">
+      <span class="gift-label">${textoSeguro(dato.etiqueta)}</span>
+      <span class="gift-value">${textoSeguro(dato.valor)}</span>
+    </div>
+  `).join("");
+}
+
+function abrirRegalo() {
+  configurarRegalo();
+  $("giftModal").classList.add("visible");
+}
+
+function cerrarRegalo() {
+  $("giftModal").classList.remove("visible");
+}
+
 function mostrarToast(mensaje) {
   const toast = $("toast");
   toast.textContent = mensaje;
@@ -1798,17 +1931,23 @@ function iniciar() {
   crearEventos();
   crearDetalles();
   crearGaleria();
+  configurarRegalo();
   configurarMusica();
   actualizarCuenta();
   prepararRevelado();
   setInterval(actualizarCuenta, 1000);
   $("abrirInvitacion").addEventListener("click", abrirInvitacion);
   $("closeLightbox").addEventListener("click", cerrarLightbox);
+  $("closeGift").addEventListener("click", cerrarRegalo);
   $("lightbox").addEventListener("click", (event) => {
     if (event.target.id === "lightbox") cerrarLightbox();
   });
+  $("giftModal").addEventListener("click", (event) => {
+    if (event.target.id === "giftModal") cerrarRegalo();
+  });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") cerrarLightbox();
+    if (event.key === "Escape") cerrarRegalo();
     if (event.key === "ArrowRight") cambiarFoto(1);
     if (event.key === "ArrowLeft") cambiarFoto(-1);
   });
