@@ -1453,13 +1453,17 @@ const CONFIG = {
     volumen: 0.72
   },
 
-  portada: {
-    modoCirculo: "foto", // "foto" usa una imagen. "inicial" muestra la letra grande.
-    fotoCirculo: "cover.jpg",
-    posicionFoto: "center center",
-    textoBotonPrincipal: "Ver detalles",
-    textoBotonSecundario: "Ver fotos"
-  },
+ portada: {
+  modoCirculo: "inicial", //foto o la incial del nombre
+  fotoCirculo: "cover.jpg",
+  posicionFoto: "center center",
+
+  mostrarBotonPrincipal: false,
+  mostrarBotonSecundario: false,
+
+  textoBotonPrincipal: "Ver detalles",
+  textoBotonSecundario: "Ver fotos"
+},
 
   diseno: {
     paleta: "rosa_perla",
@@ -1653,8 +1657,11 @@ function aplicarTextos() {
   setText("heroName", CONFIG.evento.nombre);
   setText("heroSubtitle", CONFIG.evento.frasePortada);
   setText("heroText", CONFIG.evento.textoInicio);
-  $("heroPrimary").innerHTML = `${ICONOS.flecha}<span>${textoSeguro(CONFIG.portada.textoBotonPrincipal)}</span>`;
-  $("heroSecondary").innerHTML = `${ICONOS.flecha}<span>${textoSeguro(CONFIG.portada.textoBotonSecundario)}</span>`;
+ $("heroPrimary").hidden = CONFIG.portada.mostrarBotonPrincipal === false;
+$("heroSecondary").hidden = CONFIG.portada.mostrarBotonSecundario === false;
+
+$("heroPrimary").innerHTML = `${ICONOS.flecha}<span>${textoSeguro(CONFIG.portada.textoBotonPrincipal)}</span>`;
+$("heroSecondary").innerHTML = `${ICONOS.flecha}<span>${textoSeguro(CONFIG.portada.textoBotonSecundario)}</span>`;
   setText("storyKicker", CONFIG.secciones.historiaKicker);
   setText("storyQuoteMark", "“");
   setText("storyTitle", CONFIG.secciones.historiaTitulo);
